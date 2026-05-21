@@ -1,7 +1,13 @@
 import request from './request'
 
-export function getCategoryList() {
-  return request.get('/categories')
+// 【修改】商品列表页面用（分页）
+export function getCategoryList(params) {
+  return request.get('/categories', { params })
+}
+
+// 【新增】新增商品弹窗用（不分页，返回数组）
+export function getAllCategories() {
+  return request.get('/categories/all')
 }
 
 export function getCategoriesByType(type) {

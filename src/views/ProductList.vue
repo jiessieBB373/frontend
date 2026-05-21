@@ -9,41 +9,43 @@
               <template #prefix><el-icon><Search /></el-icon></template>
             </el-input>
             <el-button type="primary" @click="loadData"><el-icon><Search /></el-icon> 搜索</el-button>
-            <el-button type="success" @click="openDialog()"><el-icon><Plus /></el-icon> 新增商品</el-button>
+            <el-button v-if="userType === 'MERCHANT'" type="success" @click="openDialog()"><el-icon><Plus /></el-icon> 新增商品</el-button>
           </div>
         </div>
       </template>
 
       <el-table :data="tableData" stripe border style="width: 100%">
         <el-table-column prop="id" label="ID" width="60" />
-        <el-table-column prop="name" label="商品名称" min-width="160" />
-        <el-table-column prop="code" label="编码" width="100" />
-        <el-table-column prop="brand" label="品牌" width="100" />
-        <el-table-column prop="specification" label="规格" width="120" />
-        <el-table-column prop="unit" label="单位" width="60" />
-        <el-table-column prop="retailPrice" label="零售价" width="90">
+        <el-table-column prop="name" label="商品名称" min-width="140" show-overflow-tooltip />
+        <el-table-column prop="code" label="编码" width="110" show-overflow-tooltip />
+        <el-table-column prop="brand" label="品牌" width="90" />
+        <el-table-column prop="specification" label="规格" width="110" show-overflow-tooltip />
+        <el-table-column prop="unit" label="单位" width="70" />
+        <el-table-column prop="retailPrice" label="零售价" width="85">
           <template #default="{ row }">¥{{ row.retailPrice }}</template>
         </el-table-column>
-        <el-table-column prop="wholesalePrice" label="批发价" width="90">
+        <el-table-column prop="wholesalePrice" label="批发价" width="85">
           <template #default="{ row }">¥{{ row.wholesalePrice }}</template>
         </el-table-column>
-        <el-table-column prop="minQuantity" label="起批" width="70" />
-        <el-table-column prop="stock" label="库存" width="70" />
-        <el-table-column label="商品图片" width="90">
+        <el-table-column prop="minQuantity" label="起批" width="65" />
+        <el-table-column prop="stock" label="库存" width="65" />
+        <el-table-column label="商品图片" width="95">
           <template #default="{ row }">
             <el-image v-if="row.imageUrl" :src="getImageUrl(row.imageUrl)" style="width: 60px; height: 60px" fit="cover" :preview-src-list="[getImageUrl(row.imageUrl)]" preview-teleported />
             <span v-else style="color: #999; font-size: 12px">暂无图片</span>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="80">
+        <el-table-column prop="status" label="状态" width="85">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'danger'" size="small">{{ row.status === 1 ? '上架' : '下架' }}</el-tag>
           </template>
         </el-table-column>
+        <!-- 所属商户列：管理员显示，自适应宽度 -->
+        <el-table-column v-if="userType === 'ADMIN'" prop="merchantName" label="所属商户" min-width="120" show-overflow-tooltip />
         <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="openDialog(row)">编辑</el-button>
-            <el-button type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            <el-button v-if="canEdit(row)" type="primary" size="small" @click="openDialog(row)">编辑</el-button>
+            <el-button v-if="canEdit(row)" type="danger" size="small" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -136,8 +138,12 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProductList, createProduct, updateProduct, deleteProduct } from '@/api/product'
-import { getCategoryList } from '@/api/category'
+import { getCategoryList, getAllCategories  } from '@/api/category'
+import { useUserStore } from '@/stores/user'
+import { computed } from 'vue'
 
+const userStore = useUserStore()
+const userType = computed(() => userStore.userType)
 const keyword = ref('')
 const tableData = ref([])
 const categories = ref([])
@@ -176,15 +182,23 @@ const loadData = async () => {
   if (res.code === 200) { tableData.value = res.data.records; total.value = res.data.total }
 }
 
+// 【修改】商品列表页面用分页接口
 const loadCategories = async () => {
-  const res = await getCategoryList()
-  if (res.code === 200) categories.value = res.data
+  const res = await getAllCategories()
+  if (res.code === 200) categories.value = res.data.records || []
+}
+
+// 【新增】新增/编辑商品弹窗用（不分页）
+const loadCategoriesForDialog = async () => {
+  const res = await getAllCategories()
+  if (res.code === 200) categories.value = res.data || []
 }
 
 const openDialog = (row) => {
   isEdit.value = !!row
   form.value = row ? { ...row } : { name: '', code: '', brand: '', categoryId: null, specification: '', unit: '包', retailPrice: 0, wholesalePrice: 0, minQuantity: 1, stock: 0, status: 1, description: '' }
   dialogVisible.value = true
+  loadCategoriesForDialog()
 }
 
 const handleSubmit = async () => {
@@ -206,6 +220,15 @@ const handleDelete = (row) => {
     loadData()
   })
 }
+
+// 【新增】权限判断方法
+const canEdit = (row) => {
+  if (userType.value === 'ADMIN') return true
+  if (userType.value === 'MERCHANT') return Number(row.merchantId) === Number(userStore.userId)
+  return false
+}
+
+const canDelete = (row) => canEdit(row)
 
 onMounted(() => { loadData(); loadCategories() })
 </script>

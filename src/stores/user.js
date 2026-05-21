@@ -6,6 +6,7 @@ export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const username = ref(localStorage.getItem('username') || '')
   const userType = ref(localStorage.getItem('userType') || '')
+  const userId = ref(localStorage.getItem('userId') || '')
   const permissions = ref(JSON.parse(localStorage.getItem('permissions') || '[]'))
 
   const isLoggedIn = computed(() => !!token.value)
@@ -20,9 +21,11 @@ export const useUserStore = defineStore('user', () => {
     username.value = info.username
     userType.value = info.userType
     permissions.value = info.permissions || []
+    userId.value = info.userId
     localStorage.setItem('username', info.username)
     localStorage.setItem('userType', info.userType)
     localStorage.setItem('permissions', JSON.stringify(info.permissions || []))
+    localStorage.setItem('userId', info.userId)
   }
 
   async function doLogin(loginData) {
@@ -39,10 +42,12 @@ export const useUserStore = defineStore('user', () => {
     username.value = ''
     userType.value = ''
     permissions.value = []
+    userId.value = ''
     localStorage.removeItem('token')
     localStorage.removeItem('username')
     localStorage.removeItem('userType')
     localStorage.removeItem('permissions')
+    localStorage.removeItem('userId')
   }
 
   return {
@@ -50,6 +55,7 @@ export const useUserStore = defineStore('user', () => {
     username,
     userType,
     permissions,
+    userId,
     isLoggedIn,
     isAdmin,
     setToken,

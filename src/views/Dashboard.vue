@@ -34,7 +34,7 @@
           </div>
         </el-card>
       </el-col>
-      <el-col :span="6">
+      <el-col :span="6" v-if="userStore.isAdmin">
         <el-card shadow="hover" class="stat-card">
           <div class="stat-icon" style="background: #F56C6C">
             <el-icon :size="30"><User /></el-icon>
@@ -80,11 +80,14 @@
             <el-button type="success" size="large" @click="$router.push('/orders')" style="width: 100%; margin-bottom: 12px">
               <el-icon><Document /></el-icon> 订单管理
             </el-button>
-            <el-button type="warning" size="large" @click="$router.push('/categories')" style="width: 100%; margin-bottom: 12px">
+            <el-button type="warning" v-if="userType === 'MERCHANT' || userType === 'ADMIN'" size="large" @click="$router.push('/categories')" style="width: 100%; margin-bottom: 12px">
               <el-icon><Grid /></el-icon> 分类管理
             </el-button>
             <el-button v-if="userStore.isAdmin" type="danger" size="large" @click="$router.push('/merchants')" style="width: 100%">
               <el-icon><User /></el-icon> 商户管理
+            </el-button>
+            <el-button v-if="userType === 'MERCHANT' || userType === 'ADMIN'" type="danger" size="large" @click="$router.push('/customers')" style="width: 100%">
+              <el-icon><User /></el-icon> 客户管理
             </el-button>
           </div>
         </el-card>
@@ -99,8 +102,10 @@ import { useUserStore } from '@/stores/user'
 import { getProductList } from '@/api/product'
 import { getOrderList } from '@/api/order'
 import request from '@/api/request'
+import { computed } from 'vue'
 
 const userStore = useUserStore()
+const userType = computed(() => userStore.userType)
 
 const stats = ref({
   productCount: 0,

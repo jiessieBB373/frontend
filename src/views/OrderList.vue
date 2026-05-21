@@ -17,6 +17,7 @@
       <el-table :data="tableData" stripe border style="width: 100%">
         <el-table-column prop="orderNo" label="订单编号" width="180" />
         <el-table-column prop="merchantName" label="商户" width="120" />
+        <el-table-column v-if="userType === 'MERCHANT'" prop="customerName" label="客户名称" width="120" />
         <el-table-column prop="totalAmount" label="订单金额" width="100">
           <template #default="{ row }">¥{{ row.totalAmount }}</template>
         </el-table-column>
@@ -93,7 +94,11 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { getOrderList, getOrderDetail, updateOrderStatus, cancelOrder } from '@/api/order'
+import { useUserStore } from '@/stores/user'
+import { computed } from 'vue'
 
+const userStore = useUserStore()
+const userType = computed(() => userStore.userType)
 const tableData = ref([])
 const total = ref(0)
 const pageNum = ref(1)

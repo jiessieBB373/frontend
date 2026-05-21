@@ -43,6 +43,12 @@ const routes = [
         name: 'Merchants',
         component: () => import('@/views/MerchantList.vue'),
         meta: { title: '商户管理', icon: 'User', requiresAdmin: true }
+      },
+      {
+        path: '/customers',
+        name: 'CustomerList',
+        component: () => import('@/views/CustomerList.vue'),
+        meta: { title: '客户管理', icon: 'User' }
       }
     ]
   }
