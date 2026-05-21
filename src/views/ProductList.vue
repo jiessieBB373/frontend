@@ -71,9 +71,15 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="分类">
-              <el-select v-model="form.categoryId" placeholder="选择分类" style="width: 100%">
-                <el-option v-for="c in categories" :key="c.id" :label="c.name" :value="c.id" />
-              </el-select>
+              <el-cascader
+                  v-model="form.categoryIds"
+                  :options="convertToCascaderOptions(categoryTree)"
+                  :props="{ expandTrigger: 'hover', value: 'value', label: 'label', children: 'children' }"
+                  placeholder="请选择分类"
+                  style="width: 100%"
+                  clearable
+                  @change="handleCategoryChange"
+              />
             </el-form-item>
           </el-col>
         </el-row>
@@ -135,24 +141,38 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProductList, createProduct, updateProduct, deleteProduct } from '@/api/product'
-import { getCategoryList, getAllCategories  } from '@/api/category'
+import { getCategoryTree } from '@/api/category'
 import { useUserStore } from '@/stores/user'
-import { computed } from 'vue'
 
 const userStore = useUserStore()
 const userType = computed(() => userStore.userType)
 const keyword = ref('')
 const tableData = ref([])
-const categories = ref([])
+const categoryTree = ref([])  // ==================== 修复：改为 categoryTree ====================
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
-const form = ref({ name: '', code: '', brand: '', categoryId: null, specification: '', unit: '包', retailPrice: 0, wholesalePrice: 0, minQuantity: 1, stock: 0, status: 1, description: '', imageUrl: '' })
+const form = ref({
+  name: '',
+  code: '',
+  brand: '',
+  categoryIds: [],
+  categoryId: null,
+  specification: '',
+  unit: '包',
+  retailPrice: 0,
+  wholesalePrice: 0,
+  minQuantity: 1,
+  stock: 0,
+  status: 1,
+  description: '',
+  imageUrl: ''
+})
 
 const getImageUrl = (url) => {
   if (!url) return ''
@@ -182,23 +202,79 @@ const loadData = async () => {
   if (res.code === 200) { tableData.value = res.data.records; total.value = res.data.total }
 }
 
-// 【修改】商品列表页面用分页接口
 const loadCategories = async () => {
-  const res = await getAllCategories()
-  if (res.code === 200) categories.value = res.data.records || []
+  const res = await getCategoryTree()
+  if (res.code === 200) {
+    categoryTree.value = res.data || []
+  }
 }
 
-// 【新增】新增/编辑商品弹窗用（不分页）
-const loadCategoriesForDialog = async () => {
-  const res = await getAllCategories()
-  if (res.code === 200) categories.value = res.data || []
+// 将树形分类转换为级联选择器选项
+const convertToCascaderOptions = (tree) => {
+  return tree.map(item => ({
+    value: item.id,
+    label: item.name,
+    children: item.children && item.children.length > 0
+        ? item.children.map(child => ({
+          value: child.id,
+          label: child.name
+        }))
+        : undefined
+  }))
+}
+
+// 级联选择器变化处理
+const handleCategoryChange = (value) => {
+  if (value && value.length > 0) {
+    form.value.categoryId = value[value.length - 1]
+  } else {
+    form.value.categoryId = null
+  }
+}
+
+// 根据分类ID找到完整路径（用于编辑时回显级联选择器）
+const findCategoryPath = (categoryId) => {
+  if (!categoryId) return []
+  for (const major of categoryTree.value) {
+    if (major.id === categoryId) {
+      return [major.id]
+    }
+    if (major.children) {
+      for (const minor of major.children) {
+        if (minor.id === categoryId) {
+          return [major.id, minor.id]
+        }
+      }
+    }
+  }
+  return []
 }
 
 const openDialog = (row) => {
   isEdit.value = !!row
-  form.value = row ? { ...row } : { name: '', code: '', brand: '', categoryId: null, specification: '', unit: '包', retailPrice: 0, wholesalePrice: 0, minQuantity: 1, stock: 0, status: 1, description: '' }
+  if (row) {
+    const categoryIds = findCategoryPath(row.categoryId)
+    form.value = { ...row, categoryIds: categoryIds }
+  } else {
+    // ==================== 修复：完整列出所有字段，不要用 ... ====================
+    form.value = {
+      name: '',
+      code: '',
+      brand: '',
+      categoryIds: [],
+      categoryId: null,
+      specification: '',
+      unit: '包',
+      retailPrice: 0,
+      wholesalePrice: 0,
+      minQuantity: 1,
+      stock: 0,
+      status: 1,
+      description: '',
+      imageUrl: ''
+    }
+  }
   dialogVisible.value = true
-  loadCategoriesForDialog()
 }
 
 const handleSubmit = async () => {
@@ -221,14 +297,12 @@ const handleDelete = (row) => {
   })
 }
 
-// 【新增】权限判断方法
+// 权限判断方法
 const canEdit = (row) => {
   if (userType.value === 'ADMIN') return true
   if (userType.value === 'MERCHANT') return Number(row.merchantId) === Number(userStore.userId)
   return false
 }
-
-const canDelete = (row) => canEdit(row)
 
 onMounted(() => { loadData(); loadCategories() })
 </script>

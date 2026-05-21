@@ -25,3 +25,18 @@ export function updateCategory(id, data) {
 export function deleteCategory(id) {
   return request.delete(`/categories/${id}`)
 }
+
+// 获取树形分类结构
+export function getCategoryTree() {
+  return request.get('/categories/tree')
+}
+
+// 根据层级获取分类
+export function getCategoriesByLevel(level) {
+  return request.get(`/categories/level/${level}`)
+}
+
+// 获取子分类
+export function getChildrenByParentId(parentId) {
+  return request.get(`/categories/children/${parentId}`)
+}
