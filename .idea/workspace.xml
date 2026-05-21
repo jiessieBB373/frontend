@@ -5,17 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c4d79db6-8310-4be4-84fd-6ec820abd49d" name="Changes" comment="remove node_modules folder">
-      <change afterPath="$PROJECT_DIR$/src/api/customer.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/views/CustomerList.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/auth.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/auth.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/api/category.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/api/category.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/layout/MainLayout.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/layout/MainLayout.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/router/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/router/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/stores/user.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/stores/user.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/CategoryList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/CategoryList.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/Dashboard.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/Dashboard.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/OrderList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/OrderList.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/views/ProductList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/src/views/ProductList.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,7 +70,7 @@
       <workItem from="1779088789271" duration="87000" />
       <workItem from="1779092320418" duration="965000" />
       <workItem from="1779257439314" duration="21279000" />
-      <workItem from="1779341708741" duration="1834000" />
+      <workItem from="1779341708741" duration="2103000" />
     </task>
     <task id="LOCAL-00001" summary="remove node_modules folder">
       <option name="closed" value="true" />
