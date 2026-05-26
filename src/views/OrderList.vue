@@ -4,13 +4,24 @@
       <template #header>
         <div style="display: flex; justify-content: space-between; align-items: center">
           <span style="font-weight: bold; font-size: 16px">订单管理</span>
-          <el-select v-model="statusFilter" placeholder="订单状态" clearable style="width: 150px; margin-right: 12px" @change="loadData">
-            <el-option label="待处理" value="PENDING" />
-            <el-option label="已确认" value="CONFIRMED" />
-            <el-option label="配送中" value="DELIVERING" />
-            <el-option label="已完成" value="COMPLETED" />
-            <el-option label="已取消" value="CANCELLED" />
-          </el-select>
+          <div style="display: flex; align-items: center">
+            <!-- 模糊搜索 -->
+            <el-input v-model="keyword" placeholder="搜索订单编号/客户名称" style="width: 220px; margin-right: 12px" clearable @clear="loadData" @keyup.enter="loadData">
+              <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
+            <!-- 商户筛选（仅管理员） -->
+            <el-select v-if="userType === 'ADMIN'" v-model="merchantFilter" placeholder="筛选商户" clearable style="width: 150px; margin-right: 12px" @change="loadData">
+              <el-option v-for="m in merchantList" :key="m.id" :label="m.shopName || m.username" :value="m.id" />
+            </el-select>
+            <!-- 订单状态 -->
+            <el-select v-model="statusFilter" placeholder="订单状态" clearable style="width: 150px" @change="loadData">
+              <el-option label="待处理" value="PENDING" />
+              <el-option label="已确认" value="CONFIRMED" />
+              <el-option label="配送中" value="DELIVERING" />
+              <el-option label="已完成" value="COMPLETED" />
+              <el-option label="已取消" value="CANCELLED" />
+            </el-select>
+          </div>
         </div>
       </template>
 
@@ -43,7 +54,7 @@
         <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" size="small" @click="viewDetail(row)">详情</el-button>
-            <el-select v-if="row.status !== 'CANCELLED' && row.status !== 'COMPLETED'" v-model="nextStatus" size="small" style="width: 90px; margin-left: 4px" placeholder="操作" @change="handleStatusChange(row)">
+            <el-select v-if="row.status !== 'CANCELLED' && row.status !== 'COMPLETED' && userType === 'MERCHANT'" v-model="nextStatus" size="small" style="width: 90px; margin-left: 4px" placeholder="操作" @change="handleStatusChange(row)">
               <el-option v-if="row.status === 'PENDING'" label="确认" value="CONFIRMED" />
               <el-option v-if="row.status === 'CONFIRMED'" label="发货" value="DELIVERING" />
               <el-option v-if="row.status === 'DELIVERING'" label="完成" value="COMPLETED" />
@@ -104,9 +115,21 @@ const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
 const statusFilter = ref('')
+const keyword = ref('')
+const merchantFilter = ref(null)
+const merchantList = ref([])
 const nextStatus = ref('')
 const detailVisible = ref(false)
 const currentOrder = ref(null)
+
+const loadMerchants = async () => {
+  if (userType.value === 'ADMIN') {
+    const res = await getAllMerchants()
+    if (res.code === 200) {
+      merchantList.value = res.data || []
+    }
+  }
+}
 
 const statusTagType = (status) => {
   const map = { PENDING: 'warning', CONFIRMED: 'primary', DELIVERING: '', COMPLETED: 'success', CANCELLED: 'danger' }
@@ -116,6 +139,8 @@ const statusTagType = (status) => {
 const loadData = async () => {
   const params = { pageNum: pageNum.value, pageSize: pageSize.value }
   if (statusFilter.value) params.status = statusFilter.value
+  if (keyword.value) params.keyword = keyword.value
+  if (merchantFilter.value) params.adminMerchantId  = merchantFilter.value
   const res = await getOrderList(params)
   if (res.code === 200) { tableData.value = res.data.records; total.value = res.data.total }
 }
